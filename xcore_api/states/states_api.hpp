@@ -116,6 +116,13 @@ public:
      * @return RunningStateAPI 具体数据
      */
     RunningStateAPI GetRunningState();
+
+    /**
+     * @brief 判断是否是仿真模式
+     * @return true 仿真模式
+     * @return false 实机模式
+     */
+    bool IsSimuMode();
 private:
     std::shared_ptr<StatesImpl> pimpl;
 };

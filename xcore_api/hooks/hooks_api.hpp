@@ -19,7 +19,12 @@ namespace hooks{
  */
 enum HookEventAPI{
     INVALID_EVENT,
-    POINT_CHANGE  ///< 点位增加删除修改事件回调
+    POINT_CHANGE,    ///< 点位增加删除修改事件回调
+    PP_TO_MAIN,     ///< pp2main回调
+    PP_TO_LINE,     ///< pp2line事件回调
+    B_START_RUN,    ///< 开始运行事件回调
+    B_PAUSE_RUN,    ///< 暂停运行事件回调
+    E_STOP_RUN     ///< 急停事件回调
 };
 
 /**

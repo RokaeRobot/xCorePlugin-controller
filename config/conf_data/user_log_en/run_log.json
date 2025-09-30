@@ -1,0 +1,11 @@
+{
+    "user_record_t": [
+        {
+            "content": "start $arg",
+            "id": 1000100,
+            "level": 1,
+            "reason": "",
+            "title": "plugin run log"
+        }
+    ]
+}
