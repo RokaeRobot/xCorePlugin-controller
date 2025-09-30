@@ -6,7 +6,7 @@
 
 ### 接口使用
 
-见 *example*
+见 *examples*
 
 # License
 

@@ -1,0 +1,15 @@
+{
+    "user_record_t": [
+        {
+            "content": "start $arg",
+            "id": 1000000,
+            "level": 1,
+            "paras": {
+                "1000000.code": "plugin start code 1000000"
+            },
+            "reason": "",
+            "repair": "",
+            "title": "plugin user log"
+        }
+    ]
+}

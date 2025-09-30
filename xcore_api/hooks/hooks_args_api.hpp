@@ -44,7 +44,9 @@ class HookPointArgsImpl;
  */
 class HookPointArgsAPI:public HookArgsBaseAPI{
 public:
-
+    HookPointArgsAPI();
+    virtual ~HookPointArgsAPI();
+public:
     /**
      * @brief 获取点位名称
      * @return 点位名 
@@ -72,12 +74,70 @@ public:
      * @return false 失败
      */
     bool SetOperate(const CURDAPI &operate);
-public:
-    HookPointArgsAPI();
-    ~HookPointArgsAPI();
+
 private:
     std::shared_ptr<HookPointArgsImpl> pimpl;
 };
+
+
+//前向声明
+class HookPPToLineArgsImpl;
+/**
+ * @brief 点位回调参数的具体实现
+ */
+class HookPPToLineArgsAPI:public HookArgsBaseAPI{
+public:
+    HookPPToLineArgsAPI();
+    virtual ~HookPPToLineArgsAPI();
+public:
+     /**
+     * @brief 获取跳转到所在文件名称
+     * @return 程序跳转的文件名
+     */
+    const std::string GetFileName() const;
+
+    /**
+     * @brief 设置通知文件名称
+     * @param name 文件名
+     * @return true 成功
+     * @return false 失败
+     */
+    bool SetFileName(const std::string &name);
+
+    /**
+     * @brief 获取跳转的文件行数
+     * @return 具体行
+     */
+    const int GetFileLine() const;
+
+    /**
+     * @brief 设置跳转文件的具体行
+     * @param line 具体行数
+     * @return true 成功
+     * @return false 失败
+     */
+    bool SetFileLine(const int line);
+
+     /**
+     * @brief 获取跳转的任务名
+     * @return 具体任务名
+     */
+    const std::string GetTaskName() const;
+
+    /**
+     * @brief 设置跳转到的任务名
+     * @param name 具体任务名
+     * @return true 成功
+     * @return false 失败
+     */
+    bool SetTaskName(const std::string &name);
+
+
+private:
+    std::shared_ptr<HookPPToLineArgsImpl> pimpl;
+};
+
+
 
 }
 }

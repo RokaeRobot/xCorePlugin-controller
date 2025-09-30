@@ -8,7 +8,6 @@
  * @file motion_cmd_api.hpp
  * @brief 运动指令的接口
  */
-
 #pragma once
 #include <string>
 #include <memory>
@@ -25,7 +24,19 @@ enum MoveTypeAPI : unsigned short {
     MOVE_ABSJ = 0,
     MOVE_J,
     MOVE_L,
-    MOVE_C
+    MOVE_C,
+    MOVE_CF,
+    MOVE_T,
+    MOVE_SP
+};
+
+/**
+ * @brief 全圆旋转姿态参数
+ */
+enum RotTypeAPI{
+    CONST_POSE,  ///< 不变姿态
+    ROT_AXIS,   ///< 动轴旋转
+    FIXED_AXIS  ///< 定轴旋转
 };
 
 /**
@@ -69,6 +80,35 @@ public:
      * @return int 0成功，其他失败
      */
     int SetMoveType(const MoveTypeAPI &type);
+
+    /**
+     * @brief 设置全圆运动额外参数
+     * @param type 姿态旋转模式
+     * @param rundeg 执行角度-359到3600度
+     * @return int 0成功，其他失败
+     * @note 需要搭配MOVE_CF运动使用
+     */
+    int SetMoveCFData(RotTypeAPI type,double rundeg);
+
+    /**
+     * @brief 设置摆线运动额外参数
+     * @param radius 摆线半径，单位m
+     * @param step 步进长度，单位m
+     * @return int 0成功，其他失败
+     * @note 需要搭配MOVE_T运动使用
+     */
+    int SetMoveTData(double radius,double step);
+
+    /**
+     * @brief 设置螺旋线运动额外参数
+     * @param radius 初始半径，单位m
+     * @param step 旋转增率，单位m/rad
+     * @param angle 合计旋转角度，单位rad
+     * @param clockwise 旋转方向，true顺时针，false逆时针方向
+     * @return int 0成功，其他失败
+     * @note 需要搭配MOVE_SP运动使用
+     */
+    int SetMoveSPData(double radius,double step,double angle,bool clockwise);
 
     /**
      * @brief 设置工具参数
@@ -149,7 +189,7 @@ public:
 
 private:
     std::shared_ptr<MotionCmdArgsImpl> pimpl;
-    friend class MotionCmdAPI;
+    friend class MotionCmdArgsImpl;
 };
 
 /**

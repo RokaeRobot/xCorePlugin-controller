@@ -18,6 +18,7 @@
 #include "launch.hpp"
 #include "utils/singleton_api.hpp"
 
+
 namespace plugin{
 /**
  * @brief 声明模块作为启动入口模块，优先级越高越先执行
@@ -30,7 +31,7 @@ LAUNCH_MODULE_PRIORITY(Launch,0)
  * 没有依赖关系的插件入口模块构造顺序未定义
  */
 Launch::Launch() {
-     LOG(INFO)<<"construct lauunch";
+     LOG(INFO)<<"construct launch";
 }
 /**
  * @brief 插件构造完毕之后，所有插件按优先级依次执行Init函数

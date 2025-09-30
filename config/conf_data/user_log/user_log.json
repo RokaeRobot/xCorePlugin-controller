@@ -1,0 +1,15 @@
+{
+    "user_record_t": [
+        {
+            "content": "插件起始地址 $arg",
+            "id": 1000000,
+            "level": 1,
+            "paras": {
+                "1000000.code": "code $arg"
+            },
+            "reason": "提示",
+            "repair": "无需修复",
+            "title": "插件起始地址"
+        }
+    ]
+}
