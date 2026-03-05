@@ -15,9 +15,9 @@ namespace _printq_ {
 using namespace xcore_api::rl_cmd;
 
 /**
- * @brief 1：指定指令名
+ * @brief 指令注册函数
  */
-DECLARE_MORDEN_RLCMD_API(Printq);
+    void RegPrintq();
 
 
 }

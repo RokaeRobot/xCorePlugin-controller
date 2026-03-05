@@ -9,21 +9,23 @@
  * @brief 实现一条自定义指令的接口
  */
 #pragma once
-#include <json/json.h>
+#include <json/json.h> 
 #include "string.h"
 #include "const_data/pose_api.hpp"
 
+struct VmArgVRuleInCmd;
 namespace xcore_api{
 namespace rl_cmd{
 
 /**
  * @brief 指令变量的类型
+ *        删除了在3.2解释器自定义指令中用不到的类型
  */
 enum class ValueTypeAPI : unsigned short
 {
     VALUE_UNKNOWN = 0,
-    VALUE_PROC_VOID,
-    VALUE_TRAP_VOID,
+//     VALUE_PROC_VOID,
+//     VALUE_TRAP_VOID,
     VALUE_INT, ///< 基础数据类型
     VALUE_DOUBLE,
     VALUE_BOOL,
@@ -36,7 +38,7 @@ enum class ValueTypeAPI : unsigned short
     VALUE_FCCYLINDERVOL,
     VALUE_FCSPHEREVOL,
     VALUE_FCXYZNUM,
-    VALUE_INTNUM, ///< 整数
+    VALUE_INTNUM, 
     VALUE_JOINTTARGET, ///< 关节数据
     VALUE_LOAD, ///< 负载数据
     VALUE_ORIENT, ///< 方向
@@ -45,8 +47,8 @@ enum class ValueTypeAPI : unsigned short
     VALUE_POSE, ///< 位姿
     VALUE_ROBTARGET, ///< 笛卡尔类型
     VALUE_SPEED, ///< 速度
-    VALUE_SYNCIDENT,
-    VALUE_TASKS, ///< 任务
+//     VALUE_SYNCIDENT,
+//     VALUE_TASKS, ///< 任务
     VALUE_TOOL, ///< 工具
     VALUE_TRIGDATA, ///< trigger类型
     VALUE_WOBJ, ///< 工件
@@ -57,10 +59,11 @@ enum class ValueTypeAPI : unsigned short
     VALUE_SIGNAL_GO,
     VALUE_SIGNAL_AI,
     VALUE_SIGNAL_AO,
-    VALUE_SIGNAL_DOUT,
-    VALUE_SIGNAL_DIN,
-    VALUE_SIGNAL_AOUT,
-    VALUE_SIGNAL_AIN,
+   // 以下无效
+//     VALUE_SIGNAL_DOUT,
+//     VALUE_SIGNAL_DIN,
+//     VALUE_SIGNAL_AOUT,
+//     VALUE_SIGNAL_AIN,
     VALUE_MODBUS, ///<  ModBus
     VALUE_INPUT_SIGNAL,
     VALUE_TRANS, ///<  TRANS 例如\STOP 指令的附加参数
@@ -69,16 +72,24 @@ enum class ValueTypeAPI : unsigned short
     VALUE_TORQUE_INFO, ///<  力矩信息
     VALUE_JOINT_TORQUE, ///< 轴空间观测力 外部力
     VALUE_CART_TORQUE, ///<  笛卡尔力 力矩
-    VALUE_SOCKET_SERVER, ///<  网络控制信息
+    VALUE_SOCKET_SERVER, ///<  网络控制信息*/
     VALUE_SOCKET_CONNECT,
-    VALUE_CATCH_ERROR, ///<  捕获的错误信息
-    VALUE_SERIAL, ///<  串口设备
+/*    VALUE_CATCH_ERROR, ///<  捕获的错误信息*/
+/*    VALUE_SERIAL, ///<  串口设备*/
     VALUE_NULL,
-    VALUE_NULLABLE_SPEED  ///<  可缺省速度
+/*    VALUE_NULLABLE_SPEED  ///<  可缺省速度*/
+};
+
+// 3.2解释器支持3种参数缺省形式
+enum class ArgRuleTypeAPI : int {
+    ARG_MUST_HAVE = 0,     // 必须存在的参数
+    ARG_DEFAULT_AT_LAST,
+    ARG_DEFAULT_NOT_LAST,
 };
 
 //前向声明
 class ArgTypeImpl;
+class SymbolVarBaseAPI;
 
 /**
  * @brief 设置参数类型接口
@@ -93,10 +104,37 @@ public:
 
     /**
      * @brief 带参构造函数
-     * @param type 参数类型 
-     * @param require 是必选参数，非可省参数
+     * @param type 参数类型
+     * @brief 构造不可缺省的形参
      */
-    ArgTypeAPI(const ValueTypeAPI &type,const bool &require);
+    ArgTypeAPI(ValueTypeAPI type);
+
+    /**
+     * @brief 带参构造函数
+     * @param types 某个参数支持的所有类型
+     * @brief 构造不可缺省的形参
+     */
+    ArgTypeAPI(std::vector<ValueTypeAPI> types);
+
+    /**
+     * @brief 带参构造函数
+     * @param type 参数类型
+     * @param rule 参数缺省
+     * @param value 参数默认值
+     * @brief 构造可缺省的形参
+     */
+    ArgTypeAPI(ValueTypeAPI type, ArgRuleTypeAPI arg_rule,
+        SymbolVarBaseAPI value);
+    
+    /**
+     * @brief 带参构造函数
+     * @param types 支持的参数类型列表，一个参数可以支持多种类型
+     * @param rule 参数缺省
+     * @param value 参数默认值
+     * @brief 构造可缺省的形参
+     */
+    ArgTypeAPI(std::vector<ValueTypeAPI> types, ArgRuleTypeAPI arg_rule,
+        SymbolVarBaseAPI value);
 
     /**
      * @brief 析构函数
@@ -111,24 +149,37 @@ public:
     void SetValueType(const ValueTypeAPI &type);
 
     /**
-     * @brief 必选参数还是可选参数
-     * @param require 
+     * @brief 参数的缺省形式，不缺省，在参数列表末尾缺省，不在参数列表缺省
+     * @param rule 参数缺省规则
      */
-    void SetRequire(const bool &require);
+    void SetRule(const ArgRuleTypeAPI &rule);
+
+    /**
+     * @brief 缺省时的默认值
+     * @param value 默认值
+     */
+    void SetDefaultValue(const SymbolVarBaseAPI& value);
 
 public:
     /**
      * @brief 获取当前参数类型
      * @return ValueTypeAPI 具体类型
      */
-    ValueTypeAPI GetValueType() const;
+    std::vector<ValueTypeAPI> GetValueType() const;
+
 
     /**
-     * @brief 获取当前参数可选类型
-     * @return true 必须参数
-     * @return false 可省参数
+     * @brief 获取当前参数的缺省形式
+     * @return ArgRuleTypeAPI
      */
-    bool GetRequire() const;
+    ArgRuleTypeAPI GetRule() const;
+
+    /**
+     * @brief 获取当前参数的默认值
+     * @return SymbolVarBaseAPI
+     */
+    std::shared_ptr<SymbolVarBaseAPI> GetDefaultValue() const;
+
 private:
      std::shared_ptr<ArgTypeImpl> pimpl;
 };
@@ -178,6 +229,7 @@ class SymbolVarBaseAPI;
 class ModernRLCmdImpl;
 class RLCmdArgImpl;
 class RLCmdConfigImpl;
+class RLCallFrameImpl;
 
 /**
  * @brief 指令配置参数
@@ -185,7 +237,7 @@ class RLCmdConfigImpl;
 class RLCmdConfigAPI{
 public:
     /**
-     * @brief 默认构造函数
+     * @brief 默认构造函数 
      */
     RLCmdConfigAPI();
 
@@ -219,18 +271,6 @@ public:
     void SetTaskLimit(const TaskLimitAPI& limit);
     
     /**
-     * @brief 设置指令是否需要括号
-     * @param require_bracket true 需要，false 不需要
-     */
-    void SetRequireBracket(const bool& require_bracket);
-    
-    /**
-     * @brief 设置指令函数的返回值类型
-     * @param return_type 返回类型 
-     */
-    void SetReturnType(const ValueTypeAPI& return_type);
-    
-    /**
      * @brief 设置步退的类型
      * @param step_type 步退类型
      */
@@ -254,19 +294,6 @@ public:
      * @return TaskLimitAPI 具体限制类型
      */
     TaskLimitAPI GetTaskLimit() const;
-
-    /**
-     * @brief 指令是否需要括号
-     * @return true 需要
-     * @return false 不需要
-     */
-    bool GetRequireBracket() const;
-
-    /**
-     * @brief 获取返回类型
-     * @return  ValueTypeAPI
-     */
-    ValueTypeAPI GetReturnType() const;
     
     /**
      * @brief 获取步退行为
@@ -278,20 +305,43 @@ private:
     std::shared_ptr<RLCmdConfigImpl> pimpl;
 };
 
+// 将一些运行时信息放到这里来提供
+class RLCallFrameAPI {
+public:
+    RLCallFrameAPI(std::shared_ptr<RLCallFrameImpl> ptr);
+    ~RLCallFrameAPI();
+
+    std::string GetCmdTask();
+    std::string GetCmdFile();
+    int GetCmdLine();
+    int GetVisitedLine();
+    void SetReturnValue(const SymbolVarBaseAPI& val);
+
+private:
+    friend class ModernRLCmdImpl;
+    std::shared_ptr<RLCallFrameImpl> pimpl;
+};
+ 
 /**
  * @brief 指令返回值
  */
-using cmdExecute_t = std::function<CommandProcessResultAPI()>;
+// 内层lambda
+using CommandExecuteAPI = std::function<CommandProcessResultAPI()>;
+// 外层lambda
+using RLCmdActionAPI = std::function<CommandExecuteAPI(
+    std::shared_ptr<RLCallFrameAPI>, std::vector<std::shared_ptr<SymbolVarBaseAPI>>)>;
 
 /**
  * @brief 指令参数接口
- * @param v 指令需要的参数集合
+ * @param v 指令需要的参数集合 
  * @return std::shared_ptr<RLCmdArgImpl> 
  */
 std::shared_ptr<RLCmdArgImpl> RequireArgsAPI(const std::vector<ArgTypeAPI> &v);
 
 /**
- * @brief 指令实现的基类
+ * @brief 指令实现的接口类
+ *        用户通过实例化这个类进行自定义指令
+ *        核心是将的配置传递给内部封装的指令实现（封装了解释器向外提供的指令注册接口）
  */
 class ModernRLCmdAPI{
 public:
@@ -302,48 +352,12 @@ public:
      */
     explicit ModernRLCmdAPI(const RLCmdConfigAPI& cfg);
 
-    /**
+    /** 
      * @brief 析构函数
      */
     virtual ~ModernRLCmdAPI();
 
-    /**
-     * @brief 指令需要实现的具体执行逻辑
-     * @return cmdExecute_t 
-     */
-    virtual cmdExecute_t ExecuteAction() = 0;
-
-    /**
-     * @brief 指令需要实现的需要的参数逻辑
-     * @return std::shared_ptr<RLCmdArgImpl> 
-     */
-    virtual std::shared_ptr<RLCmdArgImpl> RequireArgs() = 0;
 public:
-    /**
-     * @brief 获取当前的任务名称
-     * @return std::string 任务名称
-     */
-    std::string GetCmdTask();
-
-    /**
-     * @brief 获取当前指令所在的文件
-     * @return std::string 文件信息
-     */
-    std::string GetCmdFile();
-
-    /**
-     * @brief 获取指令当前所在的行数
-     * @return int 
-     */
-    int GetCmdLine();
-
-    /**
-     * @brief 获取访问过的行数
-     * @note 主要用于步退指令获取行数，步退时从后往前解释。
-     * @return int 
-     */
-    int GetVisitedLine();
-
     /**
      * @brief 获取当前指令的配置数据
      * @return RLCmdConfigAPI 
@@ -355,41 +369,34 @@ public:
      * @note 通过符号表获取具体的数据
      * @return const std::vector<SymbolVarBaseAPI>& 符号的集合
      */
-    const std::vector<SymbolVarBaseAPI>& GetCmdArgs();
+    const std::vector<std::shared_ptr<SymbolVarBaseAPI>>& GetCmdArgs();
     /**
      * @brief 设置当前指令的返回值
      * @param val 具体返回值数据
      */
-    void SetReturnValue(const SymbolVarBaseAPI& val);
+    void SetParams(const std::initializer_list<ArgTypeAPI>& v);
+    void SetExecutor(RLCmdActionAPI& action);
+    void SetExecutorStb(RLCmdActionAPI& action);
+    ModernRLCmdAPI Convert();
 private:
-    friend class MordenRLCmdSymbolImpl;
+    friend bool RegPluginCmdsAPI(std::shared_ptr<ModernRLCmdAPI> ptr);
     std::shared_ptr<ModernRLCmdImpl> pimpl;
 };
 
-/**
- * @brief 1：宏实现指令的继承定义
- */
-#define DECLARE_MORDEN_RLCMD_API(_type_name_) \
-class _type_name_ : public ModernRLCmdAPI {\
-public:\
-    explicit _type_name_(const RLCmdConfigAPI& cfg):ModernRLCmdAPI(cfg){}\
-    virtual ~_type_name_() {}\
-    virtual cmdExecute_t ExecuteAction() override;\
-    virtual std::shared_ptr<RLCmdArgImpl> RequireArgs() override;\
-};
+#define BEGIN_COMMAND_API(cmd_config) \
+        ModernRLCmdAPI __builder(cmd_config);
 
-/**
- * @brief 2:该指令需要的参数
- */
-#define MORDERN_CMD_ARGS_API(_type_name_)\
-std::shared_ptr<RLCmdArgImpl> _type_name_::RequireArgs()
+#define PARAMS_API(...) \
+    __builder.SetParams({__VA_ARGS__});
 
-/**
- * @brief 3:指令的具体实现逻辑
- */
-#define MORDERN_CMD_EXECUTE_API(_type_name_)\
-cmdExecute_t _type_name_::ExecuteAction()
+#define EXECUTE_API(lambda) \
+    __builder.SetExecutor(lambda);
 
+#define EXECUTE_STB_API(lambda) \
+    __builder.SetExecutorStb(lambda);
+
+#define REGISTER_COMMAND_API \
+    RegPluginCmdsAPI(std::make_shared<ModernRLCmdAPI>(__builder.Convert()));
 
 namespace xpose = ::xcore_api::const_data::pose;
 
@@ -412,6 +419,16 @@ public:
      * @brief 默认构造函数
      */
     SymbolVarBaseAPI();
+
+    /**
+     * @brief 拷贝构造函数
+     */
+    SymbolVarBaseAPI(const SymbolVarBaseAPI& other) = default;
+
+    /**
+     * @brief 移动构造函数
+     */
+    SymbolVarBaseAPI(SymbolVarBaseAPI&& other);
 
     /**
      * @brief 默认析构函数
@@ -542,6 +559,9 @@ public:
     void ResetStringArr(const std::vector<std::string> &v);
 private:
     friend class ModernRLCmdAPI;
+    friend class RLCallFrameAPI;
+    friend class ArgTypeAPI;
+    friend VmArgVRuleInCmd GetVmArgRule(const ArgTypeAPI& arg);
     std::shared_ptr<SymbolVarBaseImpl> pimpl;
 };
 
@@ -552,14 +572,6 @@ private:
  * @return false 失败
  */
 bool RegPluginCmdsAPI(std::shared_ptr<ModernRLCmdAPI> ptr);
-
-/**
- * @brief 将当前步退指令的数据注册到控制器中
- * @param ptr 步退指令
- * @return true 成功
- * @return false 失败
- */
-bool RegPluginStepBackCmdsAPI(std::shared_ptr<ModernRLCmdAPI> ptr);
-
 }
+
 }
