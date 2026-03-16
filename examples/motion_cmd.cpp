@@ -90,6 +90,9 @@ void RegPMoveAbsj() {
         return cmd_exec;
     };
     
+    EXECUTE_API(cmd_func)
+
+    REGISTER_COMMAND_API
 }
 
 void RegPMoveL() {
