@@ -513,7 +513,7 @@ void RegPSegMoveL() {
 
 void RegPMoveBackL() {
      RLCmdConfigAPI cfg;
-    cfg.SetFuncName("psegmoveL");
+    cfg.SetFuncName("psegmovebackL");
     //设置指令前瞻方式，默认WAIT_MOVE_PAUSE
     cfg.SetLookAhead(CmdLookAheadImplAPI::MOVEMENT_ITSELF) ;
     //设置任务限制类型
@@ -582,7 +582,7 @@ void RegPMoveBackL() {
 
 void RegPMoveBackC() {
     RLCmdConfigAPI cfg;
-    cfg.SetFuncName("pmovec");
+    cfg.SetFuncName("pmovebackc");
     //设置指令前瞻方式，默认WAIT_MOVE_PAUSE
     cfg.SetLookAhead(CmdLookAheadImplAPI::MOVEMENT_ITSELF) ;
     //设置任务限制类型
