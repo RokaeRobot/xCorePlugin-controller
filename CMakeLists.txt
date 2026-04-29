@@ -46,5 +46,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 add_subdirectory (config)
 add_subdirectory (src)
 add_subdirectory (examples)
+#add_subdirectory (ElectricClawPlugin)
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE cmrc_config)

@@ -12,6 +12,8 @@
 #pragma once
 #include <string.h>
 #include <vector>
+#include <functional>
+#include <string>
 
 namespace xcore_api {
 namespace const_data {
