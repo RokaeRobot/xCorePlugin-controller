@@ -19,7 +19,9 @@
  * @return std::string 字符串数据
  */
 std::string json_serialize(const Json::Value& value){
-    std::string raw = Json::FastWriter().write(value);
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";               // 空字符串表示无缩进，生成紧凑格式
+    std::string raw = Json::writeString(builder, value);
     raw[raw.length() - 1] = '\r'; // ending control, instead of \n
     return raw;
 }

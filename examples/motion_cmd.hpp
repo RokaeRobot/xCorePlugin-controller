@@ -20,54 +20,51 @@ using namespace xcore_api::const_data::pose;
 /**
  * @brief 实现指令PMoveAbsj
  */
-DECLARE_MORDEN_RLCMD_API(PMoveAbsj);
+void RegPMoveAbsj();
 
 
 /**
  * @brief 实现指令PMoveL
  */
-DECLARE_MORDEN_RLCMD_API(PMoveL);
+void RegPMoveL();
 
 
 /**
  * @brief 实现指令PMoveC
  */
-DECLARE_MORDEN_RLCMD_API(PMoveC);
+void RegPMoveC();
 
 
 /**
  * @brief 实现指令PMoveCF
  */
-DECLARE_MORDEN_RLCMD_API(PMoveCF);
+void RegPMoveCF();
 
 
 /**
  * @brief 实现指令PMoveJ
  */
-DECLARE_MORDEN_RLCMD_API(PMoveJ);
+void RegPMoveJ();
 
 /**
  * @brief 实现指令PSegMoveL
  */
-
-DECLARE_MORDEN_RLCMD_API(PSegMoveL);
+void RegPSegMoveL();
 
 /**
  * @brief 实现步退直线指令PMoveBackL
  */
-
-DECLARE_MORDEN_RLCMD_API(PMoveBackL);
+void RegPMoveBackL();
 
 
 /**
  * @brief 实现步退指令PMoveBackC
  */
-DECLARE_MORDEN_RLCMD_API(PMoveBackC);
+void RegPMoveBackC();
 
 /**
  * @brief 实现坐标变换指令PPoseXPose，带返回值
  */
-DECLARE_MORDEN_RLCMD_API(PPoseXPose);
-
+void RegPPoseXPose();
 
 }

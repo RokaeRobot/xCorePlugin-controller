@@ -16,57 +16,74 @@ namespace _printq_ {
 using namespace xcore_api::rl_cmd;
 
 /**
- * @brief 2：指定指令所需的参数
+ * @brief 指令构建和注册
  */
-MORDERN_CMD_ARGS_API(Printq) {
-    std::vector<ArgTypeAPI>v;
-    //必选参数rob，可选wobj和string
-    v.emplace_back(ValueTypeAPI::VALUE_ROBTARGET,true);
-    v.emplace_back(ValueTypeAPI::VALUE_WOBJ,false);
-    v.emplace_back(ValueTypeAPI::VALUE_STRING,false);
-    return RequireArgsAPI(v);
-}
-/**
- * @brief 3：指令的具体实现逻辑
- */
-MORDERN_CMD_EXECUTE_API(Printq) {
-    cmdExecute_t result = [=] {
-        //获取所有的参数
-        auto args = GetCmdArgs();
-        //获取嵌套的数据
-        auto cart_pos = args[0].GetSubUnit("ROT");
-        //获取task file line
-        LOG_INFO <<"printq:"<<GetCmdTask()<<" "<<GetCmdFile()<<" "<<GetCmdLine();
-        std::vector<double> robs_q = {
-            cart_pos.GetSubUnit("Q1").GetDoubleVal(), cart_pos.GetSubUnit("Q2").GetDoubleVal(),
-            cart_pos.GetSubUnit("Q3").GetDoubleVal(), cart_pos.GetSubUnit("Q4").GetDoubleVal() };
-
-        LOG_INFO << "printq Q1="<<robs_q[0]<<" Q2="<<robs_q[1]<<" Q3="<<robs_q[2]<<" Q4="<<robs_q[3]<<" ";
-        LOG_INFO << "printq str="<<args[2].GetStringVal();
-        return CommandProcessResultAPI::CMD_PROCESS_SUCCESS;
-    };
-    return result;
-}
-
-/**
- * @brief 4：生成指令
- * @return std::shared_ptr<ModernRLCmdAPI> 指令指针 
- */
-std::shared_ptr<ModernRLCmdAPI> makePrintq() {
+void RegPrintq() {
+    // 1.指令配置，如名称、触发方式、任务限制等
     RLCmdConfigAPI cfg;
     cfg.SetFuncName("printq");
     //设置指令前瞻方式，默认WAIT_MOVE_PAUSE
     cfg.SetLookAhead(CmdLookAheadImplAPI::WAIT_MOVE_PAUSE) ;
     //设置任务限制类型
     cfg.SetTaskLimit(TaskLimitAPI::TASK_NO_LIMIT);
-    //设置指令是否需要括号
-    cfg.SetRequireBracket(true);
-    //函数的返回值类型
-    cfg.SetReturnType(ValueTypeAPI::VALUE_DOUBLE);
     //设置步退的类型
     cfg.SetStepBack(StepBackAPI::STEP_BACK_SKIP);
+    
+    // 2.根据配置创建指令
+    BEGIN_COMMAND_API(cfg)
 
-    return std::make_shared<Printq>(cfg);
+    // 3.为指令配置参数检查器
+    PARAMS_API(
+        ArgTypeAPI(ValueTypeAPI::VALUE_ROBTARGET),
+        ArgTypeAPI(ValueTypeAPI::VALUE_WOBJ),
+        ArgTypeAPI(ValueTypeAPI::VALUE_STRING)
+    )
+
+    // 4.指令正向执行体
+    RLCmdActionAPI cmd_func = [=](std::shared_ptr<RLCallFrameAPI> frame,
+        std::vector<std::shared_ptr<SymbolVarBaseAPI>> args) -> CommandExecuteAPI {
+        //获取嵌套的数据
+        auto cart_pos = args[0]->GetSubUnit("ROT");
+        std::vector<double> robs_q = {
+            cart_pos.GetSubUnit("Q1").GetDoubleVal(), cart_pos.GetSubUnit("Q2").GetDoubleVal(),
+            cart_pos.GetSubUnit("Q3").GetDoubleVal(), cart_pos.GetSubUnit("Q4").GetDoubleVal()};
+
+        CommandExecuteAPI cmd_exec = [=]()
+        {
+            LOG_INFO << "printq:" << frame->GetCmdTask() << " " << frame->GetCmdFile() << " " << frame->GetCmdLine();
+
+            LOG_INFO << "printq Q1=" << robs_q[0] << " Q2=" << robs_q[1] << " Q3=" << robs_q[2] << " Q4=" << robs_q[3] << " ";
+            LOG_INFO << "printq str=" << args[2]->GetStringVal();
+            return CommandProcessResultAPI::CMD_PROCESS_SUCCESS;
+        };
+        return cmd_exec;
+    };
+    EXECUTE_API(cmd_func)
+
+    // 5.指令步退执行体（根据实际需要添加）
+    RLCmdActionAPI cmd_func_stb = [=](std::shared_ptr<RLCallFrameAPI> frame,
+        std::vector<std::shared_ptr<SymbolVarBaseAPI>> args) -> CommandExecuteAPI {
+        //获取嵌套的数据
+        auto cart_pos = args[0]->GetSubUnit("ROT");
+        
+        std::vector<double> robs_q = {
+            cart_pos.GetSubUnit("Q1").GetDoubleVal(), cart_pos.GetSubUnit("Q2").GetDoubleVal(),
+            cart_pos.GetSubUnit("Q3").GetDoubleVal(), cart_pos.GetSubUnit("Q4").GetDoubleVal()};
+
+        CommandExecuteAPI cmd_exec = [=]()
+        {
+            LOG_INFO << "printq:" << frame->GetCmdTask() << " " << frame->GetCmdFile() << " " << frame->GetCmdLine();
+
+            LOG_INFO << "printq Q1=" << robs_q[0] << " Q2=" << robs_q[1] << " Q3=" << robs_q[2] << " Q4=" << robs_q[3] << " ";
+            LOG_INFO << "printq str=" << args[2]->GetStringVal();
+            return CommandProcessResultAPI::CMD_PROCESS_SUCCESS;
+        };
+        return cmd_exec;
+    };
+    EXECUTE_STB_API(cmd_func_stb)
+    
+    // 6.将指令注册给控制器
+    REGISTER_COMMAND_API
 }
 
 }
@@ -74,6 +91,6 @@ std::shared_ptr<ModernRLCmdAPI> makePrintq() {
  * @brief 5：在初始化调用注册到xcore系统中
  */
 void RLCmdExampleInit(){
-    xcore_api::rl_cmd::RegPluginCmdsAPI(_printq_::makePrintq());
+    _printq_::RegPrintq();
 }
 

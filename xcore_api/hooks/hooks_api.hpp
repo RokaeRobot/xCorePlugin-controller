@@ -10,6 +10,7 @@
  */
 #pragma once
 #include <string>
+#include <functional>
 #include "hooks_args_api.hpp"
 
 namespace xcore_api{

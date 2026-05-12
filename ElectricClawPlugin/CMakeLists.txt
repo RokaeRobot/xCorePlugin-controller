@@ -1,0 +1,25 @@
+﻿FILE(GLOB_RECURSE SRC_LIST *.h *.hpp *.c *.cpp *.cc *.inl)
+
+LIST(APPEND EXCLUDE_LIST
+)
+
+FOREACH (subfolder ${EXCLUDE_LIST})
+    #MESSAGE(STATUS "Project exclude sub source folder: ${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}")
+    AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}  ${subfolder}_EXCLUDE_FILES)
+    #MESSAGE(STATUS "File:" ${${subfolder}_EXCLUDE_FILES})
+
+    LIST(REMOVE_ITEM SRC_LIST ${${subfolder}_EXCLUDE_FILES})
+ENDFOREACH ()
+
+#LIST(REMOVE_ITEM SRC_LIST main.cpp)
+
+TARGET_SOURCES(${PROJECT_NAME} PUBLIC ${SRC_LIST})
+
+
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}  PRIVATE
+    ${PRO_SRC_PATH}
+)
+
+
+#这里设置输出项目的文件名
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME}) 
