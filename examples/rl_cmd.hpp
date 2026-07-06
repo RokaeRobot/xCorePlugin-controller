@@ -17,9 +17,26 @@ using namespace xcore_api::rl_cmd;
 /**
  * @brief 指令注册函数
  */
-    void RegPrintq();
-
+void RegPrintq();
 
 }
 
+namespace _async_cmd_ {
+using namespace xcore_api::rl_cmd;
 
+/**
+ * @brief 异步等待指令：参数 int n，异步暂停 n 秒后结束
+ */
+void RegAsyncWait();
+
+/**
+ * @brief 启动后台线程，每秒打印日志
+ */
+void RegStartLogThread();
+
+/**
+ * @brief 参数 int n，使上一个日志线程在 n 秒后结束
+ */
+void RegStopLogThread();
+
+}

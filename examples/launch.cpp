@@ -14,6 +14,7 @@
 #include <cassert>
 #include "utils/thread_pool_api.hpp"
 #include "launch.hpp"
+#include "rl_cmd.hpp"
 
 /**
  * @brief 2：声明该类为一个初始化模块
