@@ -26,7 +26,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 #设置头文件路径
 target_include_directories(${PROJECT_NAME}  PUBLIC
-    
+
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/${ROKAE_ARCH}/google/g3log/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/${ROKAE_ARCH}/jsoncpp/include
 
@@ -34,6 +34,11 @@ target_include_directories(${PROJECT_NAME}  PUBLIC
 
     ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+
+    #kdl 头文件路径
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/src_lib/kdl_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/src_lib/kdl_src/kdl
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/src_lib/kdl_src/kdl/utilities
 
 )
 
@@ -48,4 +53,7 @@ add_subdirectory (src)
 add_subdirectory (examples)
 #add_subdirectory (ElectricClawPlugin)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE cmrc_config)
+#构建 kdl 源码库
+add_subdirectory (3rdparty/src_lib/kdl_src)
+
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE cmrc_config orocos-kdl)
