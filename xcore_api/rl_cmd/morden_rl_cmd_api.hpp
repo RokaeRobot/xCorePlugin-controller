@@ -484,6 +484,34 @@ public:
     explicit SymbolVarBaseAPI(const char* val);
 
     /**
+     * @brief 由位置数据构造 VALUE_POS 变量
+     * @note 映射：x/y/z
+     * @param pos 位置数据
+     */
+    explicit SymbolVarBaseAPI(const xpose::PositionAPI& pos);
+
+    /**
+     * @brief 由四元数构造 VALUE_ORIENT 变量
+     * @note 映射：q1/q2/q3/q4
+     * @param ori 姿态四元数
+     */
+    explicit SymbolVarBaseAPI(const xpose::QuaternionAPI& ori);
+
+    /**
+     * @brief 由conf数据构造 VALUE_CONFDATA 变量
+     * @note 映射：cf1~cf7、cfx
+     * @param conf conf数据
+     */
+    explicit SymbolVarBaseAPI(const xpose::ConfDataAPI& conf);
+
+    /**
+     * @brief 由位姿数据构造 VALUE_POSE 变量
+     * @note 映射：p->pos, q->orient
+     * @param pose 位姿数据
+     */
+    explicit SymbolVarBaseAPI(const xpose::PoseAPI& pose);
+
+    /**
      * @brief 由点位数据构造
      * @note is_joint 为 false 时构造 VALUE_ROBTARGET（trans/rot/armangle/conf/extax）
      *       is_joint 为 true 时构造 VALUE_JOINTTARGET（robax/extax）
