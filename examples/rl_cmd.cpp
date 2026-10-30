@@ -105,7 +105,11 @@ struct CmdContext {
 };
 
 CmdContext MakeCmdContext(const std::shared_ptr<RLCallFrameAPI>& frame) {
-    return {frame->GetCmdTask(), frame->GetCmdFile(), frame->GetCmdLine()};
+    CmdContext ret;
+    ret.task = frame->GetCmdTask();
+    ret.file = frame->GetCmdFile();
+    ret.line = frame->GetCmdLine();
+    return ret;
 }
 
 std::mutex g_log_thread_mtx;
