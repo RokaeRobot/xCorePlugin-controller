@@ -425,7 +425,8 @@ public:
 	void SetExecutorStbVector(RLCmdMultipleActionAPI& action);
     // 设置前瞻参数
 	void SetExecutorWithLookahead(RLCmdActionWithLookaheadAPI& action);
-    
+    ModernRLCmdAPI Convert();
+    ModernRLCmdAPI ConvertWithLookahead();
 private:
     friend bool RegPluginCmdsAPI(std::shared_ptr<ModernRLCmdAPI> ptr);
     std::shared_ptr<ModernRLCmdImpl> pimpl;
