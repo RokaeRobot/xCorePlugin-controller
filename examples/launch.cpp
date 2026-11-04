@@ -39,6 +39,8 @@ void ExampleLaunch::Init() {
     LogExampleInit();
     //motion cmd
     MotionCmdExampleInit();
+    //multiple cmd
+    MultipleCmdExampleInit();
     //printq
     RLCmdExampleInit();
     //service

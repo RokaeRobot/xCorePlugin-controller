@@ -41,6 +41,8 @@ void LogExample();
 void ModbusExample();
 
 void MotionCmdExampleInit();
+
+void MultipleCmdExampleInit();
     
 void RLCmdExampleInit();
 
