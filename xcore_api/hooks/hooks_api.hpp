@@ -23,9 +23,12 @@ enum HookEventAPI{
     POINT_CHANGE,    ///< 点位增加删除修改事件回调
     PP_TO_MAIN,     ///< pp2main回调
     PP_TO_LINE,     ///< pp2line事件回调
+    PP_TO_FUNC,     ///< pp2func事件回调
     B_START_RUN,    ///< 开始运行事件回调
     B_PAUSE_RUN,    ///< 暂停运行事件回调
-    E_STOP_RUN     ///< 急停事件回调
+    E_STOP_RUN,     ///< 急停事件回调
+    AFTER_POWER_ON, ///< 上电事件回调
+    AFTER_POWER_OFF ///< 下电事件回调
 };
 
 /**
@@ -62,6 +65,13 @@ public:
      */
     bool SetHook(const FUNC& hook);
     /**
+     * @brief 注册回调通知暂停函数，为B_START_RUN事件的暂停回调，其他回调不会触发
+     * @param hook 回调函数
+     * @return true 成功
+     * @return false 失败
+     */
+    bool SetHookPause(const FUNC& hook);
+    /**
      * @brief 设置回调运行方式
      * @param type 同步异步
      * @return true 成功
@@ -86,7 +96,13 @@ public:
      * @brief 获取注册的回调函数
      * @return 回调函数
      */
-    const  FUNC GetHook() const ;
+    const  FUNC GetHook() const;
+
+    /**
+     * @brief 获取注册的回调暂停函数
+     * @return 回调函数
+     */
+    const  FUNC GetHookPause() const;
 
     /**
      * @brief 获取该数据的运行类型
@@ -120,8 +136,6 @@ int RegisterHooksAPI(const HookDataAPI &data);
  * @return int 0成功，其他失败
  */
 int UnRegisterHooksAPI(int hook_id);
-
-
 
 }
 }

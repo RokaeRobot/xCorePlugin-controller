@@ -12,11 +12,26 @@
 #include <json/json.h> 
 #include "string.h"
 #include "const_data/pose_api.hpp"
+#include <set>
+
+namespace data {
+namespace motion {
+    // 存放接触寻位结果
+    struct CdTouchResult;
+}
+}
+
+struct VmValue;
+using VmValuePtr = std::shared_ptr<VmValue>;
 
 struct VmArgVRuleInCmd;
 namespace xcore_api{
 namespace rl_cmd{
 
+/**
+ * @brief 指令变量的类型
+ *        删除了在3.2解释器自定义指令中用不到的类型
+ */
 /**
  * @brief 指令变量的类型
  *        删除了在3.2解释器自定义指令中用不到的类型
@@ -53,6 +68,7 @@ enum class ValueTypeAPI : unsigned short
     VALUE_TRIGDATA, ///< trigger类型
     VALUE_WOBJ, ///< 工件
     VALUE_ZONE, ///< 转弯区
+    VALUE_CD, ///< 接触寻位结果
     VALUE_SIGNAL_DI, ///< DI DO GI GO AI AO
     VALUE_SIGNAL_DO,
     VALUE_SIGNAL_GI,
@@ -77,6 +93,11 @@ enum class ValueTypeAPI : unsigned short
 /*    VALUE_CATCH_ERROR, ///<  捕获的错误信息*/
 /*    VALUE_SERIAL, ///<  串口设备*/
     VALUE_NULL,
+
+    // 解释器支持基本类型参数的隐式转换
+    VALUE_BOOL_ANY,
+    VALUE_INT_ANY,
+    VALUE_DOUBLE_ANY,
 /*    VALUE_NULLABLE_SPEED  ///<  可缺省速度*/
 };
 
@@ -86,7 +107,6 @@ enum class ArgRuleTypeAPI : int {
     ARG_DEFAULT_AT_LAST,
     ARG_DEFAULT_NOT_LAST,
 };
-
 //前向声明
 class ArgTypeImpl;
 class SymbolVarBaseAPI;
@@ -116,6 +136,7 @@ public:
      */
     ArgTypeAPI(std::vector<ValueTypeAPI> types);
 
+
     /**
      * @brief 带参构造函数
      * @param type 参数类型
@@ -125,6 +146,7 @@ public:
      */
     ArgTypeAPI(ValueTypeAPI type, ArgRuleTypeAPI arg_rule,
         SymbolVarBaseAPI value);
+
     
     /**
      * @brief 带参构造函数
@@ -204,6 +226,7 @@ enum CmdLookAheadImplAPI : int {
     ACTIVATE_AT_LOOKAHEAD = 1, ///< 前瞻触发，比如print指令
     ACTIVATE_IN_ZONE = 2, ///< 转弯区域触发，上一条指令运动后触发
     MOVEMENT_ITSELF = 3, ///< 运动指令本身
+    MOVEMENT_ITSELF_AND_WAIT_MOVE_PAUSE = 4, ///< 属于运动指令本身，且等运动执行完，指令断前瞻
 };
 
 /**
@@ -327,8 +350,16 @@ private:
  */
 // 内层lambda
 using CommandExecuteAPI = std::function<CommandProcessResultAPI()>;
+using CommandExecuteWithLookaheadAPI = std::pair<CommandExecuteAPI, CmdLookAheadImplAPI>;
+
 // 外层lambda
 using RLCmdActionAPI = std::function<CommandExecuteAPI(
+    std::shared_ptr<RLCallFrameAPI>, std::vector<std::shared_ptr<SymbolVarBaseAPI>>)>;
+//单语句多指令lamdba
+using RLCmdMultipleActionAPI = std::function<std::vector<CommandExecuteAPI>(
+    std::shared_ptr<RLCallFrameAPI>, std::vector<std::shared_ptr<SymbolVarBaseAPI>>, std::set<int>&)>;
+//根据参数输入变更前瞻类型
+using RLCmdActionWithLookaheadAPI = std::function<CommandExecuteWithLookaheadAPI(
     std::shared_ptr<RLCallFrameAPI>, std::vector<std::shared_ptr<SymbolVarBaseAPI>>)>;
 
 /**
@@ -351,6 +382,13 @@ public:
      * @param cfg 配置数据
      */
     explicit ModernRLCmdAPI(const RLCmdConfigAPI& cfg);
+
+    /**
+     * @brief 单语句多指令构造函数，传入配置数据，传入子指令配置
+     * @param cfg 配置数据
+     * @param sub_cfgs 子指令配置数据
+     */
+    explicit ModernRLCmdAPI(const RLCmdConfigAPI& cfg, const std::vector<RLCmdConfigAPI>& sub_cfgs);
 
     /** 
      * @brief 析构函数
@@ -376,32 +414,66 @@ public:
      */
     void SetParams(const std::initializer_list<ArgTypeAPI>& v);
     void SetExecutor(RLCmdActionAPI& action);
+    /**
+     * @brief 单语句对应的多条指令需要实现每一条子指令的具体执行逻辑
+     * @return action 指令具体执行逻辑
+     */
+    void SetExecutorVector(RLCmdMultipleActionAPI& action);
+	// 设置步退
     void SetExecutorStb(RLCmdActionAPI& action);
-    ModernRLCmdAPI Convert();
+	// 设置单语句多指令步退
+	void SetExecutorStbVector(RLCmdMultipleActionAPI& action);
+    // 设置前瞻参数
+	void SetExecutorWithLookahead(RLCmdActionWithLookaheadAPI& action);
+    
 private:
     friend bool RegPluginCmdsAPI(std::shared_ptr<ModernRLCmdAPI> ptr);
     std::shared_ptr<ModernRLCmdImpl> pimpl;
 };
-
+//1.1 单语句，单指令指令定义
 #define BEGIN_COMMAND_API(cmd_config) \
         ModernRLCmdAPI __builder(cmd_config);
+//1.2 单语句，多指令指令定义
+//注：单语句多指令暂不支持中断
+#define BEGIN_MULTIPLE_COMMAND_API(cmd_config, sub_configs) \
+        ModernRLCmdAPI __builder(cmd_config, sub_configs);
 
+//2. 指令参数定义
 #define PARAMS_API(...) \
     __builder.SetParams({__VA_ARGS__});
 
+//3.1 单语句，单指令具体执行逻辑
 #define EXECUTE_API(lambda) \
     __builder.SetExecutor(lambda);
+//3.2 单语句，多指令具体执行逻辑
+//注：单语句多指令暂不支持中断
+#define EXECUTE_MULTIPLE_API(lambda) \
+    __builder.SetExecutorVector(lambda);
 
+#define EXECUTE_WITH_LOOKAHEAD_API(lambda) \
+    __builder.SetExecutorWithLookahead(lambda);
+    
+//4,1 单语句，单指令步退逻辑
 #define EXECUTE_STB_API(lambda) \
     __builder.SetExecutorStb(lambda);
+//4.2 单语句，多指令步退逻辑
+//注：单语句多指令暂不支持步退
+#define EXECUTE_MULTIPLE_STB_API(lambda) \
+    __builder.SetExecutorStbVector(lambda);
 
+//5 指令注册
 #define REGISTER_COMMAND_API \
     RegPluginCmdsAPI(std::make_shared<ModernRLCmdAPI>(__builder.Convert()));
+
+#define REGISTER_COMMAND_WITH_LOOKAHEAD_API \
+    RegPluginCmdsAPI(std::make_shared<ModernRLCmdAPI>(__builder.ConvertWithLookahead()));
 
 namespace xpose = ::xcore_api::const_data::pose;
 
 //前向声明
 class SymbolVarBaseImpl;
+VmValuePtr CreateVmValuePtr(const ValueTypeAPI& type); // 创建一个VmValuePtr变量
+VmValuePtr GetVmValuePtrByName(const std::string& var_name); // 根据变量名称获取VmValuePtr变量
 
 /**
  * @brief 参数的解析，获取具体的数据
@@ -504,6 +576,29 @@ public:
     xpose::WobjAPI GetWobjAPI();
 
     /**
+     * @brief 获取变量名称
+     * @return std::string
+     */
+    std::string GetVarName();
+
+    /**
+     * @brief 获取寻位结果
+     * @return data::motion::CdTouchResult
+     */
+    data::motion::CdTouchResult GetCdTouchResult();
+
+    /**
+     * 解析robtarget, 若为NULL或参数类型不符, 返回Json::nullValue
+     * @return
+     */
+    Json::Value GetRotTarget();
+    Json::Value GetSpeed();
+    Json::Value GetZone();
+    Json::Value GetTool();
+    Json::Value GetWobj();
+    Json::Value GetCd();    //symbol转JsonValue
+
+    /**
      * @brief 给robtarget类型参数赋值
      * @param point点位数据 
      */
@@ -557,6 +652,23 @@ public:
      * @param v 新数据
      */
     void ResetStringArr(const std::vector<std::string> &v);
+
+    /**
+     * @brief 将当前wobj参数重新赋值
+     * @param wobj 新值
+     */
+    void ResetWobj(const xpose::WobjAPI& wobj);
+
+    /**
+     * @brief 将当前cd参数重新赋值
+     * @param cd 新值
+     */
+    void ResetCd(const data::motion::CdTouchResult& cd);
+
+    /**
+     * @brief 该变量是否为NULL
+     */
+    bool isNull();
 private:
     friend class ModernRLCmdAPI;
     friend class RLCallFrameAPI;

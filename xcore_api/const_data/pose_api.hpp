@@ -73,8 +73,10 @@ struct PoseAPI {
 struct PointAPI{
     PoseAPI pose; ///< 笛卡尔位姿
     std::vector<double>joint; ///< 轴关节，单位弧度
-    bool is_joint;///< 笛卡尔或者轴关节
-    std::vector<double> extjoint; ///< 外部轴数据，弧度
+    bool is_joint{false};///< 笛卡尔或者轴关节
+    std::vector<double> extjoint; ///< 外部轴数据（示教侧多为用户单位，见下方标志）
+    /// 为 true 时：extjoint 已是控制器标准单位（如 GetExtJntPosUnit），SetTargetPoint 内不再做用户单位换算（与 RLProcessCmd 中 Ex 后一致）
+    bool extjoint_already_standard{true};
     bool is_ext_rad{false};///< 外部轴是度
     double arm_angle; ///< 7轴机器人的臂角
     ConfDataAPI confdata; ///< conf配置
@@ -97,8 +99,10 @@ struct SpeedAPI {
     double orivel; ///< 旋转速度rad/s
     double psivel; ///< 7轴机器人的臂角
     double percent; ///< 关节速度百分比
+    double ext_vel_l; ///< 外部轴线速度m/s
+    double ext_vel_r; ///<外部轴角速度rad/s
     bool forced;///< 强制速度不受速度滑条影响
-    SpeedAPI():tcpvel(0),orivel(0),psivel(0),percent(0),forced(false){}
+    SpeedAPI():tcpvel(0),orivel(0),psivel(0),percent(0), ext_vel_l(0), ext_vel_r(0),forced(false){}
 };
 
 /**

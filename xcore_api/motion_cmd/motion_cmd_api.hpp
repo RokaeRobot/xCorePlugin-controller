@@ -48,6 +48,16 @@ enum CallBackTypeAPI : unsigned short {
     MOVE_FINISH,
     MOVE_ERROR
 };
+
+/**
+ * @brief 是否是强制性的期望速度，强制性的期望速度不受速度滑条影响
+ * @note SpeedAPI中设置的force标志会被内部覆盖，此标志决定是否接受内部覆盖的值
+ */
+enum ForceSpeedAPI : unsigned short {
+    FORCE_IGNORE = 0,   //忽视强制设置，由内部决定
+    FORCE_ON,           //外部强制设置为true
+    FORCE_OFF           //外部强制设置为false
+};
 //前向声明
 class MotionCmdArgsImpl;
 
@@ -70,7 +80,9 @@ public:
 
     /**
      * @brief 设置目标点
-     * @param point 点位
+     * @param point 点位；若 extjoint 非空且 extjoint_already_standard==false，实现中应先做
+     *        xcore_api::outaxis::ExtDataUserUnitToStandardAPI(extjoint)，再 PointAPI2GPoint（与 RLProcessCmd 一致）。
+     *        来自 GetExtJntPosUnit 的当前外轴请置 extjoint_already_standard=true。
      * @return int 0成功，其他失败
      */
     int SetTargetPoint(const xpose::PointAPI &point);
@@ -134,9 +146,10 @@ public:
     /**
      * @brief 设置速度数据
      * @param speed 速度值
+     * @param force_speed 是否是强制性的期望速度，强制性的期望速度不受速度滑条影响
      * @return int 0成功，其他失败
      */
-    int SetSpeed(const xpose::SpeedAPI &speed);
+    int SetSpeed(const xpose::SpeedAPI &speed, ForceSpeedAPI force_speed = ForceSpeedAPI::FORCE_IGNORE);
 
     /**
      * @brief 设置该指令为最后一条指令。通常用于结束当前连续运动。
@@ -207,7 +220,7 @@ public:
      * @return int 0成功，其他失败。
      */
     int SendCmd(const MotionCmdArgsAPI& args);
-
+    
     /**
      * @brief 多条运动指令间断连续运行，适用于RL指令包含多条运动轨迹
      * @note 每条运动结束之后会暂停，严格保证上一条运动结束之后开始下一条轨迹
@@ -224,10 +237,6 @@ public:
      */
     int SendStepBackCmd(const MotionCmdArgsAPI& args);
 };
-
-
-
-
 
 
 
